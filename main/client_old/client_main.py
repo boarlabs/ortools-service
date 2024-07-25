@@ -11,7 +11,7 @@ from operations_research.linprog_service_pb2_grpc import(
     LinProgServiceStub
 )
 
-from client.basic_model_instantiation_from_proto import(
+from client_old.basic_model_instantiation_from_proto import(
     instantiate_model
 )
 

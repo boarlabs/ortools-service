@@ -1,0 +1,6 @@
+syntax = "proto3";
+import "operations_research/linear_solver.proto";
+package operations_research;
+service LinProgService {
+    rpc MILPModel(MPModelRequest) returns (MPSolutionResponse) {};
+}
