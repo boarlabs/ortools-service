@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Dict, Any
+from typing import Dict, Any, Optional, TypeVar, List
 
-from solver_utils.ivariable import IVariable
-from solver_utils.iconstraint import IConstraint
-from solver_utils.iexpression import ILinExpr
+from main.solver_utils.variable import Variable, VarType
+from main.solver_utils.constraint import LinConstraint, ConstrSense
+from main.solver_utils.expression import LinExpr
 
 class OptSense(Enum):
     maximize = auto()
@@ -24,63 +24,75 @@ class ISolver(ABC):
     How do we define a constraint in interface? is a constraint (Ax<b), combo of a LinExpr and rhs?
     """
 
-    variables: Dict[str, Any]
-    expressions: Dict[str, Any]
-    constraints: Dict[str, Any]
-    objectives: Dict[str, Any]
+    variables: Dict[str, Variable]
+    expressions: Dict[str, LinExpr]
+    constraints: Dict[str, LinConstraint]
+    objectives: Dict[str, LinExpr]
     
+    @abstractmethod
+    def add_variable(self, variable: Variable) -> Variable:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_variable(self, var_name: str) -> Variable:
+        raise NotImplementedError
 
     @abstractmethod
-    def add_var(self, name, vtype, lower_bound, upper_bound):
+    def get_var(self, var_name) -> Any:
         raise NotImplementedError
     
     @abstractmethod
-    def add_constr(self, name, constraint):
+    def get_variable_value(self, variable: Variable) -> float:
         raise NotImplementedError
     
     @abstractmethod
-    def add_variable(self, variable: IVariable):
+    def add_linear_expression(self, expr: LinExpr):
         raise NotImplementedError
+    
+    @abstractmethod
+    def add_constr(self, name: str, constraint: Any):
+        raise NotImplementedError
+    
     
     @abstractmethod
     def add_lin_constraint(
         self, 
         name: str,
-        vairables, 
-        coefficients,
-        rhs,
-        #lazy
-        # soft
-        # penalty
+        variables: List[Variable],
+        coefficients: List[float],
+        rhs: float,
+        sense: ConstrSense,
     ):
         raise NotImplementedError
     
     @abstractmethod
-    def add_constraint(self, constraint: IConstraint):
+    def add_linear_constraint(self, constraint: LinConstraint):
         raise NotImplementedError
         
-    
     @abstractmethod
-    def add_objective(self, term: ILinExpr):
+    def get_constraint(self, name: str) -> LinConstraint:
         raise NotImplementedError
 
-    
     @abstractmethod
-    def add_objective_terms(self, objective_terms):
+    def get_constr(self, name: str) -> Any:
         raise NotImplementedError
     
-    @abstractmethod
-    def solve_model(self, sense, options):
-        raise NotImplementedError
     
+    @abstractmethod
+    def add_objective_terms(self, objective_terms: Any):
+        raise NotImplementedError
+
+    @abstractmethod
+    def add_objective(self, term: LinExpr, name:str):
+        raise NotImplementedError
+
     @abstractmethod
     def get_objective_value(self):
         raise NotImplementedError
     
     @abstractmethod
-    def get_constraint(self, name):
+    def solve_model(self, sense: OptSense, options: Dict[str, Any]):
         raise NotImplementedError
     
-    @abstractmethod
-    def get_var_value(self, var):
-        raise NotImplementedError
+ 
+SolverT = TypeVar("SolverT", bound=ISolver)
