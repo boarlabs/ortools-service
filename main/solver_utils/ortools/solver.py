@@ -1,3 +1,5 @@
+from typing import Dict
+from collections import defaultdict
 
 from main.operations_research import linear_solver_pb2
 
@@ -16,9 +18,10 @@ class Solver(ISolver):
         self.constraints = {}
         self.objectives = {}
 
-        self._model =  _create_request()
-        self._vars = {}
-
+        self._model: linear_solver_pb2.MPModelProto =  _create_request()
+        self._vars: Dict[str, linear_solver_pb2.MPVariableProto] = {}
+        self._var_index: Dict[str, int] = defaultdict(int)
+        self._model_response: linear_solver_pb2.MPSolutionResponse
 
     def add_variable(self, variable: Variable) -> Variable:
         self.variables[variable.name] = variable
@@ -34,6 +37,7 @@ class Solver(ISolver):
         
         self._vars[variable.name] = var
         variable.add_model(self)
+        self._var_index[variable.name]
         return variable
     
 
@@ -42,12 +46,19 @@ class Solver(ISolver):
 
     def get_var(self, var_name: str) -> linear_solver_pb2.MPVariableProto:
         return self._vars[var_name]
-    
-
 
     def get_variable_value(self, variable: Variable) -> float:
-        var = self.get_var(variable.name)
-            return var.x
+        solution: linear_solver_pb2.MPSolutionResponse = self._model_response
+        return solution.variable_value[self._var_index[variable.name]]
+    
+    def add_linear_expression(self, expr: LinExpr):
+        self.expressions[expr.name] = expr
+
+    def add_constr(self, name: str, constraint: Any):
+        raise ValueError("this method is not applicable here")
+
+
+
 
 def _create_request() -> linear_solver_pb2.MPModelProto:
     model_request= linear_solver_pb2.MPModelRequest()

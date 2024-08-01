@@ -71,7 +71,6 @@ class Solver(ISolver):
 
     def add_linear_expression(self, expr: LinExpr):
         self.expressions[expr.name] = expr
-    
         self._grb_exprs[expr.name] = get_grb_expr(expr)
 
     def add_constr(self, name: str, constraint: TempConstr):
