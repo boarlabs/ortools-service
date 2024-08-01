@@ -117,3 +117,8 @@ def _traverse(expr: LinExpr, parent_coef: float = 1) -> Tuple[Dict[Variable, flo
 # to create LinXpr, etc
 
 # Will mypy be okay, for further narrowing down an Attribute of the Base/Contract class
+
+
+# TODO: I should add a saftey check that complains iff a variable included in the list of vars
+# is not added to a model, i.e does not have model attached.
+# also all variables need to be having the same model
