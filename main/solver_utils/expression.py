@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import List, Union, Dict, TypeVar
+from dataclasses import dataclass, field
+from typing import List, Union, Dict, TypeVar, Tuple
 
 from main.solver_utils.variable import Variable
 
@@ -10,6 +10,9 @@ class LinExpr:
     variables: List[Union[Variable, "LinExpr"]]
     coefs: List[float]
     const: float
+
+    _net_var_coefs: Dict[Variable, float] = field(init=False)
+    _net_const: float = field(init=False)
 
     @property
     def var_coefs(self) -> Dict[Variable, float]:
@@ -22,6 +25,10 @@ class LinExpr:
     @property
     def net_variable_coefs(self) -> Dict[Variable, float]:
         return self._get_expr_net_variables()
+    
+    @property
+    def net_constant(self) -> float:
+        return self._get_expr_net_constant()
   
 
     @property
@@ -52,12 +59,19 @@ class LinExpr:
     def _get_expr_net_variables(
         self,
     ) -> Dict[Variable, float]:
-        return _traverse (self)
+        if not self._get_expr_variables:
+           self._net_var_coefs, self._net_const = _traverse (self)
+        return self._net_var_coefs
+    
+    def _get_expr_net_constant(self) -> float:
+        if not self._net_const:
+            self._net_var_coefs, self._net_const = _traverse (self)
+        return self._net_const
 
-        
 
-def _traverse(expr: LinExpr, parenet_coef: float = 1) -> Dict[Variable, float]:
+def _traverse(expr: LinExpr, parent_coef: float = 1) -> Tuple[Dict[Variable, float], float]:
     result: Dict[Variable, float] = {}
+    net_constant: float = 0.0
     def _update_result(var: Variable, coef: float):
         if var in result:
             result[var] +=coef
@@ -65,15 +79,18 @@ def _traverse(expr: LinExpr, parenet_coef: float = 1) -> Dict[Variable, float]:
             result[var] = coef
 
     for var, coef in zip(expr.variables, expr.coefs):
-        total_coef = coef * parenet_coef
+        total_coef = coef * parent_coef
         if isinstance(var, Variable):
             _update_result(var, total_coef)
         elif isinstance(var, LinExpr):
-            nested_result = _traverse(var, total_coef)
+            nested_result, nested_constant = _traverse(var, total_coef)
             for nested_var, nested_coef in nested_result.items():
                 _update_result(nested_var, nested_coef)
-    
-    return result
+
+            net_constant += nested_constant
+
+    net_constant += expr.const * parent_coef
+    return result, net_constant
     
 
     # should we add, and other overload methods
