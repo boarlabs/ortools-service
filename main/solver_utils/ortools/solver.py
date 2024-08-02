@@ -1,5 +1,6 @@
-from typing import Dict, Any, List, Optional, cast, Union
+from typing import Dict, Any, List, Optional, cast, Union, Tuple
 from collections import defaultdict
+from enum import Enum, auto
 
 from main.operations_research import linear_solver_pb2
 
@@ -7,18 +8,33 @@ from main.solver_utils.isolver import ISolver, OptSense
 from main.solver_utils.variable import Variable, VarType
 from main.solver_utils.constraint import ConstrSense, LinConstraint
 from main.solver_utils.expression import LinExpr
+from main.solver_utils.ortools.client import Client
 
 
+class  solvertypes(Enum):
+    GLOP = auto()
+    CBC = auto()
+    GLPK = auto()
+    SCIP = auto()
+
+SOLVER_TYPES = dict(
+    GLOP=linear_solver_pb2.MPModelRequest.SolverType.GLOP_LINEAR_PROGRAMMING,
+    CBC=linear_solver_pb2.MPModelRequest.SolverType.CBC_MIXED_INTEGER_PROGRAMMING,
+    GLPK=linear_solver_pb2.MPModelRequest.SolverType.GLPK_MIXED_INTEGER_PROGRAMMING,
+    SCIP=linear_solver_pb2.MPModelRequest.SolverType.SCIP_MIXED_INTEGER_PROGRAMMING,
+)
 
 class Solver(ISolver):
 
-    def __init__(self,):
+    def __init__(self, client: Client):
         self.variables = {}
         self.expressions = {}
         self.constraints = {}
         self.objectives = {}
 
-        self._model: linear_solver_pb2.MPModelProto =  _create_request()
+        self._client: Client = client
+        self._request = _create_request()
+        self._model: linear_solver_pb2.MPModelProto = self._request.model
         self._vars: Dict[str, linear_solver_pb2.MPVariableProto] = {}
         self._var_index: Dict[str, int] = defaultdict(int)
         self._model_response: Optional[linear_solver_pb2.MPSolutionResponse] = None
@@ -131,8 +147,45 @@ class Solver(ISolver):
         
         return _constr
 
+    def add_objective_terms(self, objective_terms: List[Tuple[linear_solver_pb2.MPVariableProto, float]]):
+        for var, obj_coef in objective_terms:
+            var.objective_coefficient = obj_coef
+    
+    def add_objective(self, term: LinExpr, name: str):
+        self.objectives[name] = term
 
-def _create_request() -> linear_solver_pb2.MPModelProto:
+        variables: Dict[Variable, float] = term.net_variable_coefs
+        _vars: List[linear_solver_pb2.MPVariableProto] = [
+            self._vars[variable.name] for variable in variables.keys()
+        ]
+        self.add_objective_terms(
+            zip(_vars, variables.values())
+        )
+    
+    def solve_model(self, sense: OptSense, options: Dict[str, Any]):
+
+        self._set_opt_sense(sense)
+        response = self._client.send_request_via_insecure_channel(self._request)
+        self._model_response = response
+        
+
+    def _set_opt_sense(self, sense: OptSense):
+        if sense == OptSense.maximize:
+            self._model.maximize = True
+
+    
+    def _update_solver_params(self, options: Dict[str, Any]):
+        if options["solver"]:
+            self._request.solver_type = SOLVER_TYPES[options["solver"]]
+
+
+def _create_request() -> linear_solver_pb2.MPModelRequest:
     model_request= linear_solver_pb2.MPModelRequest()
-    return  model_request.model
+    return  model_request
+
+
+
+
+
+
 
