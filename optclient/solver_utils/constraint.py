@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from enum import Enum, auto
-from main.solver_utils.expression import LinExpr
+from optclient.solver_utils.expression import LinExpr
 
 if TYPE_CHECKING:
-    from main.solver_utils.isolver import SolverT
+    from optclient.solver_utils.isolver import SolverT
 
 class ConstrSense(Enum):
     leq = auto()

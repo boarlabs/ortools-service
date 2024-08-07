@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Dict, Any, Optional, TypeVar, List
 
-from main.solver_utils.variable import Variable, VarType
-from main.solver_utils.constraint import LinConstraint, ConstrSense
-from main.solver_utils.expression import LinExpr
+from optclient.solver_utils.variable import Variable, VarType
+from optclient.solver_utils.constraint import LinConstraint, ConstrSense
+from optclient.solver_utils.expression import LinExpr
 
 class OptSense(Enum):
     maximize = auto()

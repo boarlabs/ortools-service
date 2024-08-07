@@ -4,7 +4,7 @@ from typing import Optional, TYPE_CHECKING, Any
 from enum import Enum, auto
 
 if TYPE_CHECKING:
-    from main.solver_utils.isolver import SolverT
+    from optclient.solver_utils.isolver import SolverT
 
 class VarType(Enum):
     boolean = auto()

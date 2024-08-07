@@ -1,8 +1,8 @@
 import grpc
 
 
-from main.operations_research import linear_solver_pb2
-from main.operations_research.linprog_service_pb2_grpc import LinProgServiceStub
+from optclient.operations_research import linear_solver_pb2
+from optclient.operations_research.linprog_service_pb2_grpc import LinProgServiceStub
 
 
 

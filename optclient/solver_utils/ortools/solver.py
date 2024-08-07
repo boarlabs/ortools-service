@@ -2,13 +2,13 @@ from typing import Dict, Any, List, Optional, cast, Union, Tuple
 from collections import defaultdict
 from enum import Enum, auto
 
-from main.operations_research import linear_solver_pb2
+from optclient.operations_research import linear_solver_pb2
 
-from main.solver_utils.isolver import ISolver, OptSense
-from main.solver_utils.variable import Variable, VarType
-from main.solver_utils.constraint import ConstrSense, LinConstraint
-from main.solver_utils.expression import LinExpr
-from main.solver_utils.ortools.client import Client
+from optclient.solver_utils.isolver import ISolver, OptSense
+from optclient.solver_utils.variable import Variable, VarType
+from optclient.solver_utils.constraint import ConstrSense, LinConstraint
+from optclient.solver_utils.expression import LinExpr
+from optclient.solver_utils.ortools.client import Client
 
 
 class  solvertypes(Enum):

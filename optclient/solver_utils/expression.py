@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Union, Dict, TypeVar, Tuple
 
-from main.solver_utils.variable import Variable
+from optclient.solver_utils.variable import Variable
 
 
 @dataclass(frozen=True)

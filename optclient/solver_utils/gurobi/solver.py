@@ -1,10 +1,10 @@
 
 
 from typing import Any, Dict, List, Union, cast, Optional
-from main.solver_utils.constraint import LinConstraint, ConstrSense
-from main.solver_utils.expression import LinExpr
-from main.solver_utils.isolver import ISolver, OptSense
-from main.solver_utils.variable import VarType, Variable
+from optclient.solver_utils.constraint import LinConstraint, ConstrSense
+from optclient.solver_utils.expression import LinExpr
+from optclient.solver_utils.isolver import ISolver, OptSense
+from optclient.solver_utils.variable import VarType, Variable
 
 from gurobipy import Var   # type: ignore
 from gurobipy import Model  # type: ignore
