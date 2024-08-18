@@ -41,6 +41,8 @@ class Solver(ISolver):
         self._ortools_constrs: Dict[str, linear_solver_pb2.MPConstraintProto] = {}
 
     def add_variable(self, variable: Variable) -> Variable:
+        if variable.name in self.variables.keys():
+            raise ValueError("variable name already exist!")
         self.variables[variable.name] = variable
         var = self._model.variable.add()
         var.name = variable.name
