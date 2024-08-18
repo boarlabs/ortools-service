@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from enum import Enum, auto
 from optclient.solver_utils.expression import LinExpr
@@ -17,10 +17,10 @@ class ConstrSense(Enum):
 
 @dataclass(frozen=True)
 class LinConstraint:
-    name: str
     expr: LinExpr
-    rhs: float
-    sense: ConstrSense
+    rhs: float = 0.0
+    name: Optional[str] = None
+    sense: ConstrSense = ConstrSense.leq
     #lazy
     # soft
     # penalty

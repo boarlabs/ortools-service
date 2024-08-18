@@ -1,15 +1,15 @@
 from dataclasses import dataclass, field
-from typing import List, Union, Dict, TypeVar, Tuple
+from typing import List, Union, Dict, Tuple, Optional
 
 from optclient.solver_utils.variable import Variable
 
 
-@dataclass(frozen=True)
+@dataclass
 class LinExpr:
-    name: str
     variables: List[Union[Variable, "LinExpr"]]
     coefs: List[float]
-    const: float
+    const: float = 0.0
+    name: Optional[str] = None
 
     _net_var_coefs: Dict[Variable, float] = field(init=False)
     _net_const: float = field(init=False)

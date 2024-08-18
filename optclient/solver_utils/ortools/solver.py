@@ -41,6 +41,8 @@ class Solver(ISolver):
         self._ortools_constrs: Dict[str, linear_solver_pb2.MPConstraintProto] = {}
 
     def add_variable(self, variable: Variable) -> Variable:
+        if not variable.name:
+            raise ValueError('Variable Name not set.')
         if variable.name in self.variables.keys():
             raise ValueError("variable name already exist!")
         self.variables[variable.name] = variable
@@ -69,6 +71,10 @@ class Solver(ISolver):
         return solution.variable_value[self._var_index[variable.name]]
     
     def add_linear_expression(self, expr: LinExpr):
+        if not expr.name:
+            raise ValueError("Expression name not set.")
+        if expr.name in self.expressions.keys():
+            raise ValueError("Expression name already exist.")
         self.expressions[expr.name] = expr
 
     def add_constr(self, name: str, constraint: linear_solver_pb2.MPConstraintProto):
@@ -81,6 +87,10 @@ class Solver(ISolver):
         return self.constraints[name]
     
     def add_linear_constraint(self, constraint: LinConstraint):
+        if not constraint.name:
+            raise ValueError('Constraint name not set')
+        if constraint.name in self.constraints.keys():
+            raise ValueError("Constraint name already exit!")
         self.constraints[constraint.name] = constraint
         constraint_net_variables = constraint.expr.net_variable_coefs
         rhs =  constraint.rhs - constraint.expr.net_constant

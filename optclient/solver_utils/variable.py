@@ -14,8 +14,8 @@ class VarType(Enum):
 
 @dataclass
 class Variable:
-    name: str
-    vtype: VarType
+    vtype: VarType = VarType.real
+    name: Optional[str] = None
     lower_bound: Optional[float] = None
     upper_bound: Optional[float] = None
 
