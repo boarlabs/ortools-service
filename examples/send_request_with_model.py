@@ -43,12 +43,19 @@ def create_sample_problem():
 
     solver.solve_model(sense=OptSense.maximize, options={})
 
-    X1= solver.get_variable_value(x1)
-    X2= solver.get_variable_value(x2)
-    X3= solver.get_variable_value(x3)
-    print(f"Optimal values: x1={X1}, x2={X2}, x3={X3}")
+    x_1 = solver.get_variable_value(x1)
+    x_2 = solver.get_variable_value(x2)
+    x_3 = solver.get_variable_value(x3)
+
+    o1 = solver.get_objective_value()
+
+    print(f"Optimal values: x1={x_1}, x2={x_2}, x3={x_3}")
+    print(o1)
+    print(xp3.value)
+    print(xp2.value)
 
 
+    
 if __name__ == "__main__":
     create_sample_problem()
     # send_and_solve_problem(create_sample_problem())

@@ -34,7 +34,7 @@ class LinExpr:
     @property
     def value(self) -> float:
         vars_dot_ceof: List[float] = [
-            variable.value * coef for variable, coef in self.net_variable_coefs.items()
+            variable.value * coef for variable, coef in self.net_variable_coefs
         ]
         return sum(vars_dot_ceof)
 
