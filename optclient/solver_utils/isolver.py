@@ -14,21 +14,16 @@ class OptSense(Enum):
 class ISolver(ABC):
     """
     the Isolver class is supposed to be the contract and
-    interface of users of the solvers. so there is the question
-    that the "model" objects that would be created by specific solvers
-    would or would not be exposed to users. ( I guess it should not)
-    Also there is this question that if we want the model to have a list of 
-    variables and constraints, should we create them as attributes of the ISolver or not.
-    If I add them as atributes does it mean, that the other approach that deals with partial
-    interface would run into issues? would we need to define Any as type?
-    How do we define a constraint in interface? is a constraint (Ax<b), combo of a LinExpr and rhs?
+    interface of users of the solvers.
     """
 
     variables: Dict[str, Variable]
     expressions: Dict[str, LinExpr]
     constraints: Dict[str, LinConstraint]
     objectives: Dict[str, LinExpr]
-    
+  
+    # Approach 1: Solid interface fully isolated from the solver implementation. 
+     
     @abstractmethod
     def add_variable(self, variable: Variable) -> Variable:
         raise NotImplementedError
@@ -36,24 +31,11 @@ class ISolver(ABC):
     @abstractmethod
     def get_variable(self, var_name: str) -> Variable:
         raise NotImplementedError
-
-    @abstractmethod
-    def get_var(self, var_name) -> Any:
-        raise NotImplementedError
     
     @abstractmethod
     def get_variable_value(self, variable: Variable) -> float:
         raise NotImplementedError
-    
-    @abstractmethod
-    def add_linear_expression(self, expr: LinExpr):
-        raise NotImplementedError
-    
-    @abstractmethod
-    def add_constr(self, name: str, constraint: Any):
-        raise NotImplementedError
-    
-    
+
     @abstractmethod
     def add_lin_constraint(
         self, 
@@ -74,14 +56,9 @@ class ISolver(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_constr(self, name: str) -> Any:
+    def add_linear_expression(self, expr: LinExpr):
         raise NotImplementedError
     
-    
-    @abstractmethod
-    def add_objective_terms(self, objective_terms: Any):
-        raise NotImplementedError
-
     @abstractmethod
     def add_objective(self, term: LinExpr, name:str):
         raise NotImplementedError
@@ -94,5 +71,44 @@ class ISolver(ABC):
     def solve_model(self, sense: OptSense, options: Dict[str, Any]):
         raise NotImplementedError
     
- 
+    # common for both approache 1 and 2
+    
+
+    # Approach 2: Partial interface, where the solver implementation is
+    #  implicittly exposed to users.
+    # we need to make some implicit assumptions on what "common" solver
+    # would behave
+
+    @abstractmethod
+    def get_var(self, var_name) -> Any:
+        raise NotImplementedError
+
+    @abstractmethod
+    def add_constr(self, name: str, constraint: Any):
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_constr(self, name: str) -> Any:
+        raise NotImplementedError
+    
+    
+    @abstractmethod
+    def add_objective_terms(self, objective_terms: Any):
+        raise NotImplementedError
+    
+
+
 SolverT = TypeVar("SolverT", bound=ISolver)
+
+
+
+#  that the "model" objects that would be created by specific solvers
+#  would or would not be exposed to users?
+
+#     if we want the model to have a list of 
+#     variables and constraints, should we create them as attributes of the ISolver or not.
+#     If I add them as atributes does it mean, that the other approach that deals with partial
+#     interface would run into issues? 
+#     would we need to define Any as type?
+
+#     How do we define a constraint in interface? is a constraint (Ax<b), combo of a LinExpr and rhs?

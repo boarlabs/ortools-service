@@ -8,11 +8,11 @@ with open("requirements.txt", mode="r") as file_handler:
 
 setup(
     name="optclient",
-    version="0.0.1",
+    version="0.1.1",
     description="Energy Optimization Utils",
     long_description="",
     long_description_content_type="text/markdown",
-    url="",
+    url="https://github.com/boarlabs/ortools-service",
     license="Proprietary",
     classifiers=[
         "License :: Other/Proprietary License",

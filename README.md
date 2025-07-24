@@ -1,8 +1,8 @@
 # ortools-service
-A free open access service for or-tools based on gRPC with some added utilities.
+A service for or-tools based on gRPC with some added utilities.
 The ortools service is intended to facilitate the creation of optimization models in a scalable, modular, and compositional approach.
 
-This repository include some client utils and examples for formulating and sending linear programming requests to the ortools extended service.
+This repository include some client utils and examples for formulating and sending linear programming requests to the ortools service.
 
 ## Why or-tools Service for Python?
 

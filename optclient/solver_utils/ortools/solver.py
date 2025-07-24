@@ -2,7 +2,7 @@ from typing import Dict, Any, List, Optional, cast, Union, Tuple
 from collections import defaultdict
 from enum import Enum, auto
 
-from optclient.operations_research import linear_solver_pb2
+from operations_research import linear_solver_pb2
 
 from optclient.solver_utils.isolver import ISolver, OptSense
 from optclient.solver_utils.variable import Variable, VarType
@@ -33,10 +33,11 @@ class Solver(ISolver):
         self.objectives = {}
 
         self._client: Client = client
-        self._request = _create_request()
+        self._request = client.create_request()
         self._model: linear_solver_pb2.MPModelProto = self._request.model
         self._vars: Dict[str, linear_solver_pb2.MPVariableProto] = {}
-        self._var_index: Dict[str, int] = defaultdict(int)
+        self._var_index: Dict[str, int] = {}
+        self._counter = 0
         self._model_response: Optional[linear_solver_pb2.MPSolutionResponse] = None
         self._ortools_constrs: Dict[str, linear_solver_pb2.MPConstraintProto] = {}
 
@@ -57,7 +58,8 @@ class Solver(ISolver):
         
         self._vars[variable.name] = var
         variable.add_model(self)
-        self._var_index[variable.name]
+        self._var_index[variable.name] = self._counter
+        self._counter += 1
         return variable
     
     def get_variable(self, var_name: str) -> Variable:
@@ -96,8 +98,8 @@ class Solver(ISolver):
         rhs =  constraint.rhs - constraint.expr.net_constant
         _constr = self._add_constraint_to_model(
             constraint.name,
-            constraint_net_variables.keys(),
-            constraint_net_variables.values,
+            [var for var, _ in constraint_net_variables],
+            [coef for _, coef in constraint_net_variables],
             rhs,
             constraint.sense,
         )
@@ -161,17 +163,20 @@ class Solver(ISolver):
 
     def add_objective_terms(self, objective_terms: List[Tuple[linear_solver_pb2.MPVariableProto, float]]):
         for var, obj_coef in objective_terms:
-            var.objective_coefficient = obj_coef
+            var.objective_coefficient += obj_coef
     
     def add_objective(self, term: LinExpr, name: str):
         self.objectives[name] = term
 
-        variables: Dict[Variable, float] = term.net_variable_coefs
+        variables = term.net_variable_coefs
         _vars: List[linear_solver_pb2.MPVariableProto] = [
-            self._vars[variable.name] for variable in variables.keys()
+            self._vars[variable.name] for variable,_ in variables
+        ]
+        coefs = [
+            coef for _,coef in variables
         ]
         self.add_objective_terms(
-            zip(_vars, variables.values())
+            zip(_vars, coefs)
         )
     
     def solve_model(self, sense: OptSense, options: Dict[str, Any]):
@@ -179,7 +184,11 @@ class Solver(ISolver):
         self._set_opt_sense(sense)
         response = self._client.send_request_via_insecure_channel(self._request)
         self._model_response = response
-        
+    
+    def get_objective_value(self) -> float:
+        if not self._model_response:
+            raise ValueError("Model has not been solved yet.")
+        return self._model_response.objective_value
 
     def _set_opt_sense(self, sense: OptSense):
         if sense == OptSense.maximize:
@@ -190,10 +199,6 @@ class Solver(ISolver):
         if options["solver"]:
             self._request.solver_type = SOLVER_TYPES[options["solver"]]
 
-
-def _create_request() -> linear_solver_pb2.MPModelRequest:
-    model_request= linear_solver_pb2.MPModelRequest()
-    return  model_request
 
 
 

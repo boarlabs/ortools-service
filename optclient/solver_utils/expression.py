@@ -11,19 +11,19 @@ class LinExpr:
     const: float = 0.0
     name: Optional[str] = None
 
-    _net_var_coefs: Dict[Variable, float] = field(init=False)
-    _net_const: float = field(init=False)
+    _net_var_coefs: List[Tuple[Variable, float]] = field(default_factory=list, init=False)
+    _net_const: Optional[float] = None
 
     @property
-    def var_coefs(self) -> Dict[Variable, float]:
+    def var_coefs(self) -> List[Tuple[Variable, float]]:
         return self._get_expr_variables()
 
     @property
-    def expr_coefs(self) -> Dict["LinExpr", float]:
+    def expr_coefs(self) -> List[Tuple["LinExpr", float]]:
         return  self._get_expr_expressions()
 
     @property
-    def net_variable_coefs(self) -> Dict[Variable, float]:
+    def net_variable_coefs(self) -> List[Tuple[Variable, float]]:
         return self._get_expr_net_variables()
     
     @property
@@ -38,29 +38,28 @@ class LinExpr:
         ]
         return sum(vars_dot_ceof)
 
-
     def _get_expr_variables(
         self,
-    ) ->  Dict[Variable, float]:
+    ) ->  List[Tuple[Variable, float]]:
         
-        var_coef_dict = {
-            variable: coef for variable,coef in zip(self.variables,self.coefs) if isinstance(variable, Variable)
-        }
+        var_coef_dict = [
+            (variable, coef) for variable,coef in zip(self.variables,self.coefs) if isinstance(variable, Variable)
+        ]
         return var_coef_dict
 
     def _get_expr_expressions(
         self,
-    ) -> Dict["LinExpr", float]:
-        var_coef_dict = {
-            variable: coef for variable,coef in zip(self.variables,self.coefs) if isinstance(variable, LinExpr)
-        }
+    ) -> List[Tuple["LinExpr", float]]:
+        var_coef_dict = [
+            (variable, coef) for variable,coef in zip(self.variables,self.coefs) if isinstance(variable, LinExpr)
+        ]
         return var_coef_dict
 
     def _get_expr_net_variables(
         self,
-    ) -> Dict[Variable, float]:
-        if not self._get_expr_variables:
-           self._net_var_coefs, self._net_const = _traverse (self)
+    ) -> List[Tuple[Variable, float]]:
+        if not self._net_var_coefs:
+            self._net_var_coefs, self._net_const = _traverse (self)
         return self._net_var_coefs
     
     def _get_expr_net_constant(self) -> float:
@@ -69,14 +68,16 @@ class LinExpr:
         return self._net_const
 
 
-def _traverse(expr: LinExpr, parent_coef: float = 1) -> Tuple[Dict[Variable, float], float]:
-    result: Dict[Variable, float] = {}
+def _traverse(expr: LinExpr, parent_coef: float = 1) -> Tuple[List[Tuple[Variable, float]], float]:
+    var_dict: Dict[str, Variable] = {}
+    result: Dict[str, float] = {}
     net_constant: float = 0.0
     def _update_result(var: Variable, coef: float):
-        if var in result:
-            result[var] +=coef
+        if var.name in result:
+            result[var.name] +=coef
         else:
-            result[var] = coef
+            var_dict[var.name] = var
+            result[var.name] = coef
 
     for var, coef in zip(expr.variables, expr.coefs):
         total_coef = coef * parent_coef
@@ -84,13 +85,14 @@ def _traverse(expr: LinExpr, parent_coef: float = 1) -> Tuple[Dict[Variable, flo
             _update_result(var, total_coef)
         elif isinstance(var, LinExpr):
             nested_result, nested_constant = _traverse(var, total_coef)
-            for nested_var, nested_coef in nested_result.items():
+            for nested_var, nested_coef in nested_result:
                 _update_result(nested_var, nested_coef)
 
             net_constant += nested_constant
 
     net_constant += expr.const * parent_coef
-    return result, net_constant
+    var_coef_tuple_list = [(var_dict[var_name], coef) for var_name, coef in result.items()]
+    return var_coef_tuple_list, net_constant
     
 
     # should we add, and other overload methods
